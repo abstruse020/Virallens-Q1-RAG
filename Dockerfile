@@ -13,20 +13,23 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# The bridge network's DNS (127.0.0.11 -> 8.8.8.8) fails under uv's parallel
+# downloads, so every network-heavy RUN uses the host's resolver instead.
+
 # Install dependencies first for better layer caching
 COPY pyproject.toml uv.lock ./
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --network=host --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-project
 
 # Install the application
 COPY src ./src
 
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --network=host --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # Download the embedding model into the image so it runs offline
-RUN python -c \
+RUN --network=host python -c \
     "from sentence_transformers import SentenceTransformer; \
     SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 

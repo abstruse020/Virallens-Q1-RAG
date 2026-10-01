@@ -126,8 +126,17 @@ The image bakes the corpus, the embedding model, and a prebuilt index, so it run
 out of the box. The API key is passed at runtime (never baked into the image):
 
 ```bash
-docker build -t pdf-rag .
+docker build --allow network.host -t pdf-rag .
+```
 
+`--allow network.host` is required. The network-heavy build steps (`uv sync`,
+embedding model download) declare `RUN --network=host` because Docker's default
+bridge DNS (`127.0.0.11` → `8.8.8.8`) fails under uv's parallel downloads with
+`dns error … Try again`, and host networking is a privileged BuildKit
+entitlement — without the flag the build stops with
+`network.host is not allowed`. Drop either piece and the build fails.
+
+```bash
 docker run --rm -it \
   -e OPENROUTER_API_KEY=$OPENROUTER_API_KEY \
   pdf-rag "What does the complaint allege?"
@@ -152,8 +161,12 @@ docker run --rm -it \
   pdf-rag "Your question"
 ```
 
-> The lockfile resolves the CUDA build of `torch` (a transitive dependency of
-> `sentence-transformers`), so the image is several GB even though inference is CPU-only.
+> **CPU-only torch.** `pyproject.toml` pins `torch` to the CPU build from
+> `download.pytorch.org/whl/cpu`, so no `nvidia-*` wheels are installed. The
+> agent never uses a GPU anyway — local embeddings run on CPU and chat runs on
+> OpenRouter. The image is ~2.8 GB (it was ~10.4 GB with the CUDA build).
+> To switch back to CUDA: delete the `[[tool.uv.index]]` / `[tool.uv.sources]`
+> blocks from `pyproject.toml` and re-run `uv lock`.
 
 ## Configuration
 
