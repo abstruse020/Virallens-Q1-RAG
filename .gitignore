@@ -1,0 +1,24 @@
+# environments
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# secrets
+.env
+
+# generated artifacts
+.rag_index/
+uv.lock.bak
+
+# tooling / caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store

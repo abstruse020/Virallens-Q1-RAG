@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+.rag_index/
+.env
+.git/
+.pytest_cache/
+.ruff_cache/
+*.zip
+uv.lock.bak
